@@ -83,19 +83,35 @@ Password:
 ```http
 POST /events
 ```
+Endpoint:
+http://localhost:8081/events
+
+Sample payload :
+
+{
+"eventId":"evt-004",
+"accountId":"acct-123",
+"type":"CREDIT",
+"amount":200,
+"currency":"USD",
+"eventTimestamp":"2026-05-15T15:02:11Z"
+}
 
 ### Get Event
 
 ```http
 GET /events/{eventId}
 ```
+Sample endpoint:
+http://localhost:8081/events/evt-003
 
 ### Get Events By Account
 
 ```http
 GET /events?account={accountId}
 ```
-
+Sample endpoint:
+http://localhost:8081/events?account=acct-123
 ### Health Check
 
 ```http
