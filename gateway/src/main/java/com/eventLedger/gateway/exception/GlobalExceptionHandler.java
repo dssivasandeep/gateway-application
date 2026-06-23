@@ -21,4 +21,17 @@ public class GlobalExceptionHandler {
 
         return response;
     }
+
+    @ExceptionHandler(EventNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleNotFound(
+            EventNotFoundException ex) {
+
+        Map<String, String> response =
+                new HashMap<>();
+
+        response.put("error", ex.getMessage());
+
+        return response;
+    }
 }
