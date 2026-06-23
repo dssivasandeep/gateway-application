@@ -3,6 +3,7 @@ package com.eventLedger.gateway.serviceImpl;
 
 import com.eventLedger.gateway.client.AccountServiceClient;
 import com.eventLedger.gateway.dto.AccountTransactionRequest;
+import com.eventLedger.gateway.trace.TraceContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.eventLedger.gateway.dto.EventRequest;
@@ -11,12 +12,16 @@ import com.eventLedger.gateway.entity.EventEntity;
 import com.eventLedger.gateway.repository.EventRepository;
 import com.eventLedger.gateway.service.EventService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
@@ -27,6 +32,11 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventResponse submitEvent(EventRequest request) {
 
+        log.info(
+                "Processing event={} traceId={}",
+                request.getEventId(),
+                TraceContext.getTraceId()
+        );
         EventEntity existing =
                 eventRepository.findByEventId(request.getEventId())
                         .orElse(null);
