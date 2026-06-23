@@ -10,23 +10,15 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(
-            MethodArgumentNotValidException.class
-    )
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleValidation(
-            MethodArgumentNotValidException ex) {
+    @ExceptionHandler(AccountServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public Map<String, String> handleAccountServiceDown(
+            AccountServiceUnavailableException ex) {
 
-        Map<String, String> errors = new HashMap<>();
+        Map<String, String> response = new HashMap<>();
 
-        ex.getBindingResult()
-                .getFieldErrors()
-                .forEach(error ->
-                        errors.put(
-                                error.getField(),
-                                error.getDefaultMessage()
-                        ));
+        response.put("error", ex.getMessage());
 
-        return errors;
+        return response;
     }
 }

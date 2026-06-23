@@ -2,6 +2,8 @@ package com.eventLedger.gateway.client;
 
 
 import com.eventLedger.gateway.dto.AccountTransactionRequest;
+import com.eventLedger.gateway.exception.AccountServiceUnavailableException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,10 @@ public class AccountServiceClient {
     @Value("${account.service.base-url}")
     private String accountServiceUrl;
 
+    @CircuitBreaker(
+            name = "accountService",
+            fallbackMethod = "fallbackApplyTransaction"
+    )
     public void applyTransaction(String accountId,
                                  AccountTransactionRequest request) {
 
@@ -29,6 +35,16 @@ public class AccountServiceClient {
                 url,
                 request,
                 Void.class
+        );
+    }
+
+    public void fallbackApplyTransaction(
+            String accountId,
+            AccountTransactionRequest request,
+            Exception ex) {
+
+        throw new AccountServiceUnavailableException(
+                "Account Service is unavailable"
         );
     }
 }
