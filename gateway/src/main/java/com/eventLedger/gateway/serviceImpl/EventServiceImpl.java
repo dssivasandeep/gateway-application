@@ -1,6 +1,8 @@
 package com.eventLedger.gateway.serviceImpl;
 
 
+import com.eventLedger.gateway.client.AccountServiceClient;
+import com.eventLedger.gateway.dto.AccountTransactionRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.eventLedger.gateway.dto.EventRequest;
@@ -11,14 +13,18 @@ import com.eventLedger.gateway.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final ObjectMapper objectMapper;
+    private final AccountServiceClient accountServiceClient;
 
     @Override
+    @Transactional
     public EventResponse submitEvent(EventRequest request) {
 
         EventEntity existing =
@@ -38,15 +44,29 @@ public class EventServiceImpl implements EventService {
                     .build();
         }
 
-        EventEntity event = EventEntity.builder()
-                .eventId(request.getEventId())
-                .accountId(request.getAccountId())
-                .type(request.getType())
-                .amount(request.getAmount())
-                .currency(request.getCurrency())
-                .eventTimestamp(request.getEventTimestamp())
-                .metadata(convertMetadata(request))
-                .build();
+        AccountTransactionRequest transactionRequest =
+                AccountTransactionRequest.builder()
+                        .eventId(request.getEventId())
+                        .type(request.getType())
+                        .amount(request.getAmount())
+                        .eventTimestamp(request.getEventTimestamp())
+                        .build();
+
+        accountServiceClient.applyTransaction(
+                request.getAccountId(),
+                transactionRequest
+        );
+
+        EventEntity event =
+                EventEntity.builder()
+                        .eventId(request.getEventId())
+                        .accountId(request.getAccountId())
+                        .type(request.getType())
+                        .amount(request.getAmount())
+                        .currency(request.getCurrency())
+                        .eventTimestamp(request.getEventTimestamp())
+                        .metadata(convertMetadata(request))
+                        .build();
 
         eventRepository.save(event);
 
