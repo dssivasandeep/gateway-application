@@ -1,5 +1,7 @@
 package com.eventLedger.gateway.controller;
 
+import com.eventLedger.gateway.dto.HealthResponse;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -7,9 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HealthController {
 
-    @RequestMapping(value = "/health",
-            method = RequestMethod.GET)
-    public String health() {
-        return "Gateway Service UP";
+    @GetMapping("/health")
+    public HealthResponse health() {
+
+        return new HealthResponse(
+                "gateway-service",
+                "UP"
+        );
     }
 }

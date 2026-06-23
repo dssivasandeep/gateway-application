@@ -4,7 +4,9 @@ package com.eventLedger.gateway.serviceImpl;
 import com.eventLedger.gateway.client.AccountServiceClient;
 import com.eventLedger.gateway.dto.AccountTransactionRequest;
 import com.eventLedger.gateway.exception.EventNotFoundException;
+import com.eventLedger.gateway.logging.LogUtil;
 import com.eventLedger.gateway.mapper.EventMapper;
+import com.eventLedger.gateway.metrics.MetricsService;
 import com.eventLedger.gateway.trace.TraceContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,11 +34,16 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final ObjectMapper objectMapper;
     private final AccountServiceClient accountServiceClient;
+    private final MetricsService metricsService;
 
     @Override
     @Transactional
     public EventResponse submitEvent(EventRequest request) {
 
+        LogUtil.info(
+                "gateway-service",
+                "Processing event " + request.getEventId()
+        );
         log.info(
                 "Processing event={} traceId={}",
                 request.getEventId(),
@@ -47,7 +54,7 @@ public class EventServiceImpl implements EventService {
                         .orElse(null);
 
         if (existing != null) {
-
+            metricsService.incrementDuplicate();
             return EventResponse.builder()
                     .eventId(existing.getEventId())
                     .accountId(existing.getAccountId())
@@ -84,6 +91,7 @@ public class EventServiceImpl implements EventService {
                         .build();
 
         eventRepository.save(event);
+        metricsService.incrementSubmitted();
 
         return EventResponse.builder()
                 .eventId(event.getEventId())

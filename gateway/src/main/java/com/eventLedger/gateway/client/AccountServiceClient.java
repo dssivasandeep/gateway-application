@@ -3,6 +3,7 @@ package com.eventLedger.gateway.client;
 
 import com.eventLedger.gateway.dto.AccountTransactionRequest;
 import com.eventLedger.gateway.exception.AccountServiceUnavailableException;
+import com.eventLedger.gateway.metrics.MetricsService;
 import com.eventLedger.gateway.trace.TraceContext;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 public class AccountServiceClient {
 
     private final RestTemplate restTemplate;
+    private final MetricsService metricsService;
 
     @Value("${account.service.base-url}")
     private String accountServiceUrl;
@@ -56,6 +58,7 @@ public class AccountServiceClient {
             AccountTransactionRequest request,
             Exception ex) {
 
+        metricsService.incrementAccountFailure();
         throw new AccountServiceUnavailableException(
                 "Account Service is unavailable"
         );
